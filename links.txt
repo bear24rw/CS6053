@@ -1,0 +1,4 @@
+http://gauss.ececs.uc.edu/Courses/c6053/assignments.html
+http://gauss.ececs.uc.edu/Courses/c6053/homework/assgn2.html
+http://gauss.ececs.uc.edu/Courses/c6053/homework/handshake.pdf
+http://gauss.ececs.uc.edu/Courses/c6053/project/protocol.html

@@ -1,0 +1,8 @@
+#!/bin/bash
+while [ 1 == 1 ]
+do
+   java MakeStandings ../Final/players.db
+   mv -f standings8150.html /home/httpd/html/standings8150.html
+   sleep 90
+done
+			

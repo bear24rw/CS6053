@@ -1,0 +1,5 @@
+#!/bin/csh
+
+limit coredumpsize 0
+nohup java -Djava.net.preferIPv4Stack=true -ss1m -ms96m -mx156m MonitorServer 8150 RECOVER STATIC ../Final >& ../logs/final.log
+

@@ -1,0 +1,92 @@
+0. A Java SDK should be installed on your machine.  A JRE will not be
+   enough for compiling the code.
+
+1. Make a directory and unzip the file "monitor.zip" - you have
+   probably done this already
+
+   unix: prompt> mkdir ~/C653_Monitor
+         prompt> mv monitor.zip ~/C653_Monitor
+         prompt> cd ~/C653_Monitor
+         prompt> unzip Monitor
+
+   As a result there will be three directories named "Final," "Project,"
+   and "logs" in ~/C653_Monitor.  Contents of these are as follows:
+
+   Final: player data base (put there by a running monitor) "players.db"
+          the monitor's RSA public key certificate "CACert"
+          a file containing Diffie-Hellman parameters "DHKey"
+          a file containing the monitor's RSA public key
+          a file containing the monitor's RSA private key
+
+   Project: java source for the entire monitor
+            a file for updating the standings "stan_final_8150.run"
+            two scripts for running a practice contest:
+               "practice8150.run" - log is sent to file ../logs/practice.log
+               "practice8150.withlog.run" - log is seen on console
+            a script for running a final contest "final8150.run"
+
+   logs: will contain practice.log, a log of a running practice contest
+         and/or final.log, a log of a running final contest
+
+2. Compile the java source - this may not be necessary
+   
+   unix: prompt> cd ~/C653_Monitor/Project
+         prompt> javac *.java
+
+   output should look like this only if compiling with Oracle's SDK:
+     Note: Some input files use or override a deprecated API.
+     Note: Recompile with -Xlint:deprecation for details.
+     Note: Some input files use unchecked or unsafe operations.
+     Note: Recompile with -Xlint:unchecked for details.
+
+   note: javac may have to be replaced with /full-path-to-sdk/bin/javac
+   in case of an error message saying javac is not found
+
+3. Running a practice contest
+
+   Inspect the file "practice8150.run" and edit as necessary.  The 
+   following may need to be changed:
+
+     nohup java:  if running in Windows, nohup should be removed
+                  it may be necessary to replace "java" with the full 
+                  path to java if you get an error message saying the
+                  file java is not found
+
+     8150: this is the port number that the monitor will be listening to.
+           make this anything above 8000 if you want to change it.
+
+     NEW: this means the old ../Final/players.db file will be replaced 
+          with a fresh one - the fresh one is completely blank (no players).
+          If the data base of a previous run is to be used, this should be
+          replaced with RECOVER
+
+     DYNAMIC: this means new players are added to the player database 
+          as they log in.  If no new players will be allowed this should
+          be changed to STATIC.  Typical operation calls for the practice
+          contest parameters to be NEW DYNAMIC and if the monitor is 
+          stopped it may be restarted with RECOVER DYNAMIC to pick up
+          where it left off minus up to a 1 minute rewind due to the fact
+          that the file "players.db" is updated once a minute.
+
+4. Running a final contest
+
+   Like running a practice contest except this is started using 
+   "final8150.run"
+
+   Note: for a final contest the parameters RECOVER STATIC are the 
+   only ones that make sense.
+
+5. Getting a DHKey file
+
+   To create and install a DHKey file do this:
+
+   unix: prompt> cd ~/C653_Monitor/Project
+         prompt> java PlantDHKey
+         prompt> cp DHKey ../Final
+                  
+6. Getting an RSA public/private key pair plus a certificate
+   (files CACert, RSAPub, RSAPriv)
+
+   unix: prompt> cd ~/C653_Monitor/CertAuthority
+         prompt> java KeyMaker RSAPriv RSAPub CACert
+         prompt> cp RSAPriv RSAPub CACert ../Final

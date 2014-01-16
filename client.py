@@ -1,64 +1,65 @@
 import socket
-from printer import *
+import threading
+from printer import Printer
+from config import Config
 
-class Config:
-    monitor_ip = "helios.ececs.uc.edu"
-    monitor_port = 8180
-    ident = "mtest1"
-    password = "12345"
-    cookie = ""
-    host_ip = ""
-    host_port = 0
+class Client(threading.Thread):
 
-def generate_response(line):
+    def __init__(self):
+        threading.Thread.__init__(self)
+        self.printer = Printer("client")
 
-    line = line.strip()
-    directive, args = [x.strip() for x in line.split(':', 1)]
+    def run(self):
 
-    print_directive(line)
+        sock = socket.create_connection((Config.monitor_ip, Config.monitor_port))
+        for line in sock.makefile():
+            response = self.generate_response(line)
+            self.printer.command(response)
+            sock.send(response)
 
-    if directive == "REQUIRE":
-        if args == "IDENT":
-            return "IDENT %s\n" % Config.ident
-        elif args == "PASSWORD":
-            return "PASSWORD %s\n" % Config.password
-        elif args == "ALIVE":
-            if Config.cookie == "":
-                print_info("Alive request but we don't know the cookie!")
-                return ""
-                return "HOST_PORT google.com 80"
-                return "ALIVE 234\n"
+        sock.close()
+
+    def generate_response(self, line):
+
+        line = line.strip()
+        directive, args = [x.strip() for x in line.split(':', 1)]
+
+        self.printer.directive(line)
+
+        if directive == "REQUIRE":
+            if args == "IDENT":
+                return "IDENT %s\n" % Config.ident
+            elif args == "PASSWORD":
                 return "PASSWORD %s\n" % Config.password
-                return "QUIT\n"
+            elif args == "ALIVE":
+                if Config.cookie == "":
+                    self.printer.info("Alive request but we don't know the cookie!")
+                else:
+                    return "ALIVE %s\n" % Config.cookie
+            elif args == "HOST_PORT":
+                return "HOST_PORT %s %s\n" % (Config.host_ip, Config.host_port)
             else:
-                return "ALIVE %s\n" % Config.cookie
+                self.printer.error("Unknown require: " + line)
+        elif directive == "RESULT":
+            args = args.split(' ', 1)
+            if args[0] == "PASSWORD":
+                Config.cookie = args[1]
+                self.printer.info("Got cookie: " + Config.cookie)
+            elif args[0] == "HOST_PORT":
+                self.printer.info("Login successful! (%s)" % args[1])
+            else:
+                self.printer.error("Unknown result: " + line)
+        elif directive == "WAITING":
+            pass
+        elif directive == "COMMENT":
+            pass
+        elif directive == "COMMAND_ERROR":
+            if "unable to connect to host" in args:
+                return ""
+            else:
+                self.printer.error(line)
         else:
-            print_error("Unknown require: " + line)
-    elif directive == "RESULT":
-        args = args.split()
-        if args[0] == "PASSWORD":
-            Config.cookie = args[1]
-            print_info("Got cookie: " + Config.cookie)
-        else:
-            print_error("Unknown result: " + line)
-    elif directive == "WAITING":
-        pass
-    elif directive == "COMMENT":
-        pass
-    elif directive == "COMMAND_ERROR":
-        print_error(line)
-        return "QUIT\n"
-    else:
-        print_error("Unknown directive: " + line)
+            self.printer.error("Unknown directive: " + line)
 
-    return ""
+        return ""
 
-if __name__ == "__main__":
-
-    sock = socket.create_connection((Config.monitor_ip, Config.monitor_port))
-    for line in sock.makefile():
-        response = generate_response(line)
-        print_command(response)
-        sock.send(response)
-
-    sock.close()

@@ -1,4 +1,3 @@
-import threading
 import SocketServer
 from config import Config
 from printer import Printer
@@ -55,12 +54,6 @@ class tcp_handler(SocketServer.StreamRequestHandler):
             self.printer.command(response)
             self.wfile.write(response)
 
-class Server(threading.Thread):
-
-    def __init__(self):
-        threading.Thread.__init__(self)
-
-    def run(self):
-        server = SocketServer.ThreadingTCPServer((Config.host_ip, Config.host_port), tcp_handler)
-        server.serve_forever()
-
+if __name__ == "__main__":
+    server = SocketServer.ThreadingTCPServer((Config.host_ip, Config.host_port), tcp_handler)
+    server.serve_forever()

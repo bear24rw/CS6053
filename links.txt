@@ -1,4 +1,6 @@
 http://gauss.ececs.uc.edu/Courses/c6053/assignments.html
 http://gauss.ececs.uc.edu/Courses/c6053/homework/assgn2.html
+http://gauss.ececs.uc.edu/Courses/c6053/homework/assgn3.html
 http://gauss.ececs.uc.edu/Courses/c6053/homework/handshake.pdf
 http://gauss.ececs.uc.edu/Courses/c6053/project/protocol.html
+http://blog.markloiseau.com/2013/01/diffie-hellman-tutorial-in-python/

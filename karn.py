@@ -19,16 +19,16 @@ class Karn:
         # Convert the hex key string into byte array
         key = bytearray.fromhex(key_hex)
 
-
         # Split key into two halfs
         self.key_left  = key[:len(key)/2]
         self.key_right = key[len(key)/2:]
 
     def encrypt(self, message):
 
+        # Start the output with the guard byte
         output = bytearray([GUARD_BYTE])
 
-        # break message into blocks and process each one
+        # Break message into blocks and process each one
         for block in self._grouper(message, BLOCK_SIZE, '\0'):
 
             # Convert the block into an array of bytes

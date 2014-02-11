@@ -21,9 +21,15 @@ class Karn:
         # Convert the hex key string into byte array
         key = bytearray.fromhex(key_hex)
 
+        # java BigInteger.toByteArray() is signed so it pads if MSB is 1
+        # http://stackoverflow.com/a/8544521/253650
+        if key[0] & (1<<7):
+            key = bytearray([0]) + key
+
         # Split key into two halfs
+        # Monitor drops last byte if len is odd (monitor/Cipher.java:87)
         self.key_left  = key[:len(key)/2]
-        self.key_right = key[len(key)/2:]
+        self.key_right = key[len(key)/2:(len(key)/2)*2]
 
         self.printer = Printer("karn")
 

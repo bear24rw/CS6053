@@ -130,8 +130,17 @@ if __name__ == "__main__":
     enc =  "1avfbcuej96oo1m2vc04rnlin6rpurc2pu7ac8h42dhr8l13ahdfcbev3a5sj74o85"
 
     k = Karn(key)
+
+    print "--- Testing Correct ---"
     e = k.encrypt(text)
     assert e == enc
     d = k.decrypt(e)
     assert d == text
 
+    print "--- Testing No Guard Byte ---"
+    # Test decrypting with wrong guard byte
+    e = '0' + enc[1:]
+    d = k.decrypt(e)
+    assert d == None
+
+    print "--- Done ---"

@@ -3,6 +3,7 @@ from itertools import izip_longest
 import struct
 import base64
 import string
+from printer import Printer
 
 BLOCK_SIZE = 40
 GUARD_BYTE = 42
@@ -23,6 +24,8 @@ class Karn:
         # Split key into two halfs
         self.key_left  = key[:len(key)/2]
         self.key_right = key[len(key)/2:]
+
+        self.printer = Printer("karn")
 
     def encrypt(self, message):
 
@@ -72,7 +75,7 @@ class Karn:
 
         # If the first byte isn't the guard byte we are done
         if message[0] != GUARD_BYTE:
-            print "DID NOT FIND GUARD_BYYE!"
+            self.printer.error("Did not find guard_byte!")
             return None
 
         # Remove the guard byte
@@ -110,7 +113,7 @@ class Karn:
 
         # Make sure the plaintext is normal printable text
         if not all(x in string.printable for x in output):
-            print "FOUND NONPRINTABLE TEXT IN OUTPUT"
+            self.printer.error("Unable to decrypt: %r" % output)
             return None
 
         return output

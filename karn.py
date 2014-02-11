@@ -2,6 +2,7 @@ from hashlib import sha1
 from itertools import izip_longest
 import struct
 import base64
+import string
 
 BLOCK_SIZE = 40
 GUARD_BYTE = 42
@@ -104,8 +105,15 @@ class Karn:
             output += text_left
             output += text_right
 
-        # Remove the padding and return the plaintext
-        return str(output).replace('\0', '')
+        # Remove the padding
+        output = str(output).replace('\0', '')
+
+        # Make sure the plaintext is normal printable text
+        if not all(x in string.printable for x in output):
+            print "FOUND NONPRINTABLE TEXT IN OUTPUT"
+            return None
+
+        return output
 
     def _grouper(self, iterable, n, fillvalue=None):
         """
@@ -138,8 +146,12 @@ if __name__ == "__main__":
     assert d == text
 
     print "--- Testing No Guard Byte ---"
-    # Test decrypting with wrong guard byte
     e = '0' + enc[1:]
+    d = k.decrypt(e)
+    assert d == None
+
+    print "--- Testing Corrupted Message ---"
+    e = enc[:10] + "00000" + enc[15:]
     d = k.decrypt(e)
     assert d == None
 

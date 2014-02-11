@@ -115,7 +115,7 @@ class Karn:
             output += text_right
 
         # Remove the padding
-        output = str(output).replace('\0', '')
+        output = str(output).split('\0')[0]
 
         # Make sure the plaintext is normal printable text
         if not all(x in string.printable for x in output):

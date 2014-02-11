@@ -59,6 +59,54 @@ class Karn:
         # Convert the hex string to an integer and then conver to base 32
         return self._baseN(int(output, 16), 32)
 
+    def decrypt(self, message):
+
+        # Convert the message from base 32 to hex
+        message = '%x' % int(message, 32)
+        if len(message) & 1:
+            message = '0' + message
+
+        # Convert the hex string to a byte array
+        message = bytearray.fromhex(message)
+
+        # If the first byte isn't the guard byte we are done
+        if message[0] != GUARD_BYTE:
+            print "DID NOT FIND GUARD_BYYE!"
+            return None
+
+        # Remove the guard byte
+        message = message[1:]
+
+        output = bytearray()
+
+        # Break message into blocks and process each one
+        for block in self._grouper(message, BLOCK_SIZE, '\0'):
+
+            # Convert the block into an array of bytes
+            block = bytearray(block)
+
+            # Divide block into left and right half
+            block_left  = block[:BLOCK_SIZE/2]
+            block_right = block[BLOCK_SIZE/2:]
+
+            # Find digest of cipher right and key right
+            digest = sha1(block_right + self.key_right).digest()
+
+            # XOR the digest with cipher left
+            text_left = bytearray([ord(d)^b for d,b in zip(digest, block_left)])
+
+            # Find the digest of text left and key left
+            digest = sha1(text_left + self.key_left).digest()
+
+            # XOR the digest with cipher right
+            text_right = bytearray([ord(d)^b for d,b in zip(digest, block_right)])
+
+            output += text_left
+            output += text_right
+
+        # Remove the padding and return the plaintext
+        return str(output).replace('\0', '')
+
     def _grouper(self, iterable, n, fillvalue=None):
         """
         Collect data into fixed-length chunks or blocks
@@ -76,5 +124,14 @@ class Karn:
         return ((num == 0) and numerals[0]) or (self._baseN(num // b, b, numerals).lstrip(numerals[0]) + numerals[num % b])
 
 if __name__ == "__main__":
-    k = Karn(123456789)
-    print k.encrypt("this is a test")
+
+    text = "this is a test"
+    key = 123456789
+    enc =  "1avfbcuej96oo1m2vc04rnlin6rpurc2pu7ac8h42dhr8l13ahdfcbev3a5sj74o85"
+
+    k = Karn(key)
+    e = k.encrypt(text)
+    assert e == enc
+    d = k.decrypt(e)
+    assert d == text
+

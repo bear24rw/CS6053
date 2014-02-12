@@ -19,10 +19,15 @@ class tcp_handler(SocketServer.StreamRequestHandler):
         Figure out if this connection is from the real monitor or not
         """
 
-        # make sure this connection is even coming from the monitor
-        if self.client_address[0] == Config.monitor_ip:
+        client_ip, client_port = self.client_address
 
-            cmd = "fstat | grep %s | cut -d' ' -f1" % self.client_address[1]
+        # make sure this connection is even coming from the monitor
+        if client_ip == Config.monitor_ip:
+
+            # get the list of all open file descriptors
+            # find the one that has the client port open
+            # get the name of the user who owns it
+            cmd = "fstat | grep %s | cut -d' ' -f1" % client_port
 
             # if we're not running on the same box as monitor we need to ssh
             if Config.server_ip != Config.monitor_ip:

@@ -1,4 +1,7 @@
+import socket
 import SocketServer
+import platform
+import subprocess
 from config import Config
 from printer import Printer
 from diffie_hellman import DHE
@@ -11,7 +14,40 @@ class tcp_handler(SocketServer.StreamRequestHandler):
         self.dhe = DHE()
         self.karn = None
 
-        self.printer = Printer("server")
+
+        """
+        Figure out if this connection is from the real monitor or not
+        """
+
+        # make sure this connection is even coming from the monitor
+        if self.client_address[0] == Config.monitor_ip:
+
+            cmd = "fstat | grep %s | cut -d' ' -f1" % self.client_address[1]
+
+            # if we're not running on the same box as monitor we need to ssh
+            if Config.server_ip != Config.monitor_ip:
+                cmd = "ssh -i id_rsa stackattack@helios.ececs.uc.edu " + cmd
+
+            ps = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            username = ps.communicate()[0].strip()
+
+            if username == "franco":
+                self.real_monitor = True
+            else:
+                self.real_monitor = False
+
+            self.printer = Printer("server", monitor_username=username)
+
+        else:
+
+            self.printer = Printer("server", monitor_username="UNKNOWN")
+            self.printer.error("CONNECTION NOT FROM HELIOS!")
+            self.real_monitor = False
+
+        if not self.real_monitor:
+            # TODO: terminate connection / honeypot
+            pass
+
         SocketServer.StreamRequestHandler.setup(self)
 
     def finish(self):
@@ -88,5 +124,6 @@ class tcp_handler(SocketServer.StreamRequestHandler):
             self.wfile.write(response)
 
 if __name__ == "__main__":
-    server = SocketServer.ThreadingTCPServer((Config.host_ip, Config.host_port), tcp_handler)
+    print "Starting server on %s:%s" % (Config.server_ip, Config.server_port)
+    server = SocketServer.ThreadingTCPServer((Config.server_ip, Config.server_port), tcp_handler)
     server.serve_forever()

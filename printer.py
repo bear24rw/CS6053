@@ -11,8 +11,9 @@ class Printer:
     WHITE   = '\033[37m'
     DEFAULT = '\033[0m'
 
-    def __init__(self, who=""):
+    def __init__(self, who="", monitor_username=None):
         self.who = who
+        self.monitor_username = monitor_username
 
     def directive(self, string):
         label = "monitor -> %s" % self.who
@@ -35,4 +36,7 @@ class Printer:
     def _print(self, string, label, color):
         string = string.strip()
         if string == "": return
-        print "[" + label + "] " + color + string + self.DEFAULT
+        if self.monitor_username is None:
+            print "[" + label + "] " + color + string + self.DEFAULT
+        else:
+            print "[" + label + "] [" + self.monitor_username + "] " + color + string + self.DEFAULT

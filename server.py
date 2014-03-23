@@ -35,24 +35,18 @@ class tcp_handler(SocketServer.StreamRequestHandler):
 
         if directive == "REQUIRE":
             if args == "IDENT":
-                if Config.use_encryption:
-                    return "IDENT %s %s" % (Config.ident, self.dhe.public_key)
-                else:
-                    return "IDENT %s" % Config.ident
+                return "IDENT %s %s" % (Config.ident, self.dhe.public_key)
             elif args == "ALIVE":
-                if Config.cookie == "":
-                    self.printer.info("Alive request but we don't know the cookie!")
-                else:
-                    return "ALIVE %s" % Config.cookie
+                return "ALIVE %s" % Config.cookie
+            elif args == "ROUNDS":
+                return "ROUNDS %s" % Config.num_rounds
+            elif args == "SUBSET_A":
+                return "SUBSET_A %s" % ' '.join(str(x) for x in self.verifier.subset_a)
             elif args == "TRANSFER_RESPONSE":
                 if self.verifier.good():
                     return "TRANSFER_RESPONSE ACCEPT"
                 else:
                     return "TRANSFER_RESPONSE DECLINE"
-            elif args == "ROUNDS":
-                return "ROUNDS %s" % Config.num_rounds
-            elif args == "SUBSET_A":
-                return "SUBSET_A" % ' '.join(str(x) for x in self.verifier.subset_a)
             elif args == "QUIT":
                 return "QUIT"
             else:
@@ -68,14 +62,14 @@ class tcp_handler(SocketServer.StreamRequestHandler):
             elif args[0] == "QUIT":
                 self.printer.info("server has quit")
             elif args[0] == "SUBSET_K":
-                self.verifier.subset_k = [int(x) for x in args[1:]]
+                self.verifier.subset_k = [int(x) for x in args[1].split()]
             elif args[0] == "SUBSET_J":
-                self.verifier.subset_j = [int(x) for x in args[1:]]
+                self.verifier.subset_j = [int(x) for x in args[1].split()]
             elif args[0] == "PUBLIC_KEY":
-                self.verifier.v = int(args[1], 32)
-                self.verifier.n = int(args[2], 32)
+                self.verifier.v = int(args[1].split()[0], 32)
+                self.verifier.n = int(args[1].split()[1], 32)
             elif args[0] == "AUTHORIZE_SET":
-                self.verifier.authorize_set = [int(x) for x in args[1:]]
+                self.verifier.authorize_set = [int(x) for x in args[1].split()]
             else:
                 self.printer.error("Unknown result")
         elif directive == "PARTICIPANT_PASSWORD_CHECKSUM":
@@ -117,20 +111,17 @@ class tcp_handler(SocketServer.StreamRequestHandler):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ident', default=None)
+    parser.add_argument('--ident', default="mtest16")
     args = parser.parse_args()
 
-    print args.ident
-    if args.ident:
-        if args.ident not in Config.accounts:
-            print "Invalid ident"
-            sys.exit(1)
-        Config.ident       = Config.accounts[args.ident].ident
-        Config.password    = Config.accounts[args.ident].password
-        Config.cookie      = Config.accounts[args.ident].cookie
-        Config.server_port = Config.accounts[args.ident].port
-    else:
-        print "Using test ident"
+    if args.ident not in Config.accounts:
+        print "Invalid ident"
+        sys.exit(1)
+
+    Config.ident       = Config.accounts[args.ident].ident
+    Config.password    = Config.accounts[args.ident].password
+    Config.cookie      = Config.accounts[args.ident].cookie
+    Config.server_port = Config.accounts[args.ident].port
 
 
     print "Starting server on %s:%s" % (Config.server_ip, Config.server_port)

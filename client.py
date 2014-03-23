@@ -1,3 +1,4 @@
+import sys
 import socket
 import argparse
 from printer import Printer
@@ -5,6 +6,7 @@ from config import Config
 from diffie_hellman import DHE
 from karn import Karn
 from fiat import Prover
+from base32 import base32
 
 config = Config()
 printer = Printer("client")
@@ -54,7 +56,7 @@ def generate_response(line):
         elif args[0] == "ROUNDS":
             prover.rounds = int(args[1])
         elif args[0] == "SUBSET_A":
-            prover.subset_a = [int(x) for x in args[1:]]
+            prover.subset_a = [int(x) for x in args[1].split()]
         else:
             printer.error("Unknown result: %s (args: %r)" % (line, args))
     elif directive == "WAITING":
@@ -84,7 +86,7 @@ def generate_response(line):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ident', default=None)
+    parser.add_argument('--ident', default="mtest16")
     parser.add_argument('--transfer', nargs=3, metavar=('TO', 'AMOUNT', 'FROM'))
     parser.add_argument('--manual', action='store_true')
     args = parser.parse_args()
@@ -92,16 +94,15 @@ if __name__ == "__main__":
     manual_mode = args.manual
     transfer = args.transfer
 
-    if args.ident:
-        if args.ident not in Config.accounts:
-            print "Invalid ident"
-            sys.exit(1)
-        Config.ident       = Config.accounts[args.ident].ident
-        Config.password    = Config.accounts[args.ident].password
-        Config.cookie      = Config.accounts[args.ident].cookie
-        Config.server_port = Config.accounts[args.ident].port
-    else:
-        print "Using test ident"
+    if args.ident not in Config.accounts:
+        print "Invalid ident"
+        sys.exit(1)
+
+    Config.ident       = Config.accounts[args.ident].ident
+    Config.password    = Config.accounts[args.ident].password
+    Config.cookie      = Config.accounts[args.ident].cookie
+    Config.server_port = Config.accounts[args.ident].port
+
 
     sock = socket.create_connection((Config.monitor_ip, Config.monitor_port))
 

@@ -53,10 +53,6 @@ class Verifier:
 
     def good(self):
 
-        if not self.authorize_set: print "auth set empty!!!!!!!!!"
-        if not self.subset_j: print "subset j empty!!!!!!!"
-        if not self.subset_k: print "subset k empty!!!!!!!"
-
         # check that the public key is our own
         if self.n != Prover.n:
             print "public keys dont match!"

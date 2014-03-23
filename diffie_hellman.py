@@ -1,4 +1,5 @@
 from Crypto.Random.random import getrandbits
+from base32 import base32
 
 class DHE:
 
@@ -18,18 +19,10 @@ class DHE:
         """
         Public Key = g**x % p
         """
-        self.public_key = self._baseN(pow(self.g, self.private_key, self.p), 32)
-
+        self.public_key = base32(pow(self.g, self.private_key, self.p))
 
     def monitor_key(self, key):
         """
         Takes in the monitors public key in Base 32
         """
         self.secret = pow(int(key,32), self.private_key, self.p)
-
-    def _baseN(self, num,b,numerals="0123456789abcdefghijklmnopqrstuvwxyz"):
-        """
-        Return 'num' in base 'b'
-        http://stackoverflow.com/a/2267428
-        """
-        return ((num == 0) and numerals[0]) or (self._baseN(num // b, b, numerals).lstrip(numerals[0]) + numerals[num % b])

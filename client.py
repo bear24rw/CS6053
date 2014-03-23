@@ -4,9 +4,12 @@ from printer import Printer
 from config import Config
 from diffie_hellman import DHE
 from karn import Karn
+from fiat import Prover
 
+config = Config()
 printer = Printer("client")
 dhe = DHE()
+prover = Prover()
 authenticated = False
 karn = None
 transfer = None
@@ -22,20 +25,14 @@ def generate_response(line):
     printer.directive(line)
 
     if directive == "REQUIRE":
-        if args == "IDENT":
-            if Config.use_encryption:
-                return "IDENT %s %s" % (Config.ident, dhe.public_key)
-            else:
-                return "IDENT %s" % Config.ident
-        elif args == "PASSWORD":
-            return "PASSWORD %s" % Config.password
-        elif args == "ALIVE":
-            if Config.cookie == "":
-                printer.info("Alive request but we don't know the cookie!")
-            else:
-                return "ALIVE %s" % Config.cookie
-        elif args == "HOST_PORT":
-            return "HOST_PORT %s %s" % (Config.server_ip, Config.server_port)
+        if args == "IDENT":             return "IDENT %s %s" % (Config.ident, dhe.public_key)
+        elif args == "PASSWORD":        return "PASSWORD %s" % Config.password
+        elif args == "ALIVE":           return "ALIVE %s" % Config.cookie
+        elif args == "HOST_PORT":       return "HOST_PORT %s %s" % (Config.server_ip, Config.server_port)
+        elif args == "PUBLIC_KEY":      return "PUBLIC_KEY %s %s" % (base32(prover.v), base32(prover.n))
+        elif args == "AUTHORIZE_SET":   return "AUTHORIZE_SET %s" % prover.authorize_set()
+        elif args == "SUBSET_J":        return "SUBSET_J %s" % prover.subset_j()
+        elif args == "SUBSET_K":        return "SUBSET_K %s" % prover.subset_k()
         else:
             printer.error("Unknown require: " + line)
     elif directive == "RESULT":
@@ -54,6 +51,10 @@ def generate_response(line):
             authenticated = True
         elif args[0] == "TRANSFER_REQUEST":
             printer.info("Transfer was %s" % args[1])
+        elif args[0] == "ROUNDS":
+            prover.rounds = int(args[1])
+        elif args[0] == "SUBSET_A":
+            prover.subset_a = [int(x) for x in args[1:]]
         else:
             printer.error("Unknown result: %s (args: %r)" % (line, args))
     elif directive == "WAITING":
@@ -61,7 +62,7 @@ def generate_response(line):
             printer.info("Waiting but not authenticated!")
             return None
         if transfer:
-            rt = "TRANSFER_REQUEST %s %s FROM %s\n" % transfer
+            rt = "TRANSFER_REQUEST %s %s FROM %s\n" % tuple(transfer)
             transfer = None
             return rt
         if manual_mode:
@@ -89,9 +90,18 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     manual_mode = args.manual
-    transfer = tuple(args.transfer)
-    print transfer
+    transfer = args.transfer
 
+    if args.ident:
+        if args.ident not in Config.accounts:
+            print "Invalid ident"
+            sys.exit(1)
+        Config.ident       = Config.accounts[args.ident].ident
+        Config.password    = Config.accounts[args.ident].password
+        Config.cookie      = Config.accounts[args.ident].cookie
+        Config.server_port = Config.accounts[args.ident].port
+    else:
+        print "Using test ident"
 
     sock = socket.create_connection((Config.monitor_ip, Config.monitor_port))
 

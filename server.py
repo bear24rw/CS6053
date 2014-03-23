@@ -14,44 +14,7 @@ class tcp_handler(SocketServer.StreamRequestHandler):
         self.dhe = DHE()
         self.karn = None
 
-
-        """
-        Figure out if this connection is from the real monitor or not
-        """
-
-        client_ip, client_port = self.client_address
-
-        # make sure this connection is even coming from the monitor
-        if client_ip == Config.monitor_ip:
-
-            # get the list of all open file descriptors
-            # find the one that has the client port open
-            # get the name of the user who owns it
-            cmd = "fstat | grep %s | cut -d' ' -f1" % client_port
-
-            # if we're not running on the same box as monitor we need to ssh
-            if Config.server_ip != Config.monitor_ip:
-                cmd = "ssh -i id_rsa stackattack@helios.ececs.uc.edu " + cmd
-
-            ps = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            username = ps.communicate()[0].strip()
-
-            if username == "franco":
-                self.real_monitor = True
-            else:
-                self.real_monitor = False
-
-            self.printer = Printer("server", monitor_username=username)
-
-        else:
-
-            self.printer = Printer("server", monitor_username="UNKNOWN")
-            self.printer.error("CONNECTION NOT FROM HELIOS!")
-            self.real_monitor = False
-
-        if not self.real_monitor:
-            # TODO: terminate connection / honeypot
-            pass
+        self.printer = Printer("server")
 
         SocketServer.StreamRequestHandler.setup(self)
 
@@ -77,6 +40,10 @@ class tcp_handler(SocketServer.StreamRequestHandler):
                     self.printer.info("Alive request but we don't know the cookie!")
                 else:
                     return "ALIVE %s" % Config.cookie
+            elif args == "TRANSFER_RESPONSE":
+                self.printer.info("Accepting transfer")
+                return "TRANSFER_RESPONSE ACCEPT"
+                #return "TRANSFER_RESPONSE DECLINE"
             elif args == "QUIT":
                 return "QUIT"
             else:

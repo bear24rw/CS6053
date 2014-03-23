@@ -1,0 +1,46 @@
+Re: The 20-CS-6053 final contest.  Date: March 13, 2014
+This document contains your account information plus contest details
+Please read ALL of it
+
+You will have to ALIVE yourself when you log in for the first time
+
+Team Name: Stack Attack
+Players: Max Thrun, Samir Silbak, Josh Hay, Xiaohui Qi
+Accounts:
+  EDSNOWDEN
+  Password: 8Y6]%D[:T%2!.P^$6AGDEHMCZICN;OOX-]UOJU=^G-
+  Byte-by-byte: 56+89+54+93+37+68+91+58+84+37+50+33+46+80+94+36+54+65+71+68+69+72+77+67+90+73+67+78+59+79+79+88+45+93+85+79+74+85+61+94+71+45+
+  Cookie: NOZHR7CN56SZTQW8O90
+
+  GROUND_WATER
+  Password: Y9JUY8A`L?+;RK9O$;SWRLO_M'I-[9MP)IK=*]4-E!
+  Byte-by-byte: 89+57+74+85+89+56+65+96+76+63+43+59+82+75+57+79+36+59+83+87+82+76+79+95+77+39+73+45+91+57+77+80+41+73+75+61+42+93+52+45+69+33+
+  Cookie: EVSKI5L7EFQOZUYMM6R
+
+  CORNHOLIO
+  Password: -S_:9J7R9X*/&7UDL'SX-'2?R=FOW2!T'I8.Q7F?PA
+  Byte-by-byte: 45+83+95+58+57+74+55+82+57+88+42+47+38+55+85+68+76+39+83+88+45+39+50+63+82+61+70+79+87+50+33+84+39+73+56+46+81+55+70+63+80+65+
+  Cookie: RQ4ZRZ67IXIZN5MIW89
+
+The following supersedes all information that is contained 
+in course documents:
+
+Final Contest Times: 
+   Start is 12:01 AM, March 24; End is 11:59 PM, March 27 (four days)
+Final Contest Monitor location and port: 
+   gauss.ececs.uc.edu, port 8180
+Final Contest Scoreboard:
+   http://gauss.ececs.uc.edu/final8180.html
+Final Contest log:
+   http://helios.ececs.uc.edu/final.log.8180
+
+The practice contest will continue to run until March 28.  The
+following applies to the practice contest:
+
+Practice Contest Monitor location and port:
+   helios.ececs.uc.edu, port 8180
+Practice Contest Scoreboard:
+   http://gauss.ececs.uc.edu/standings8180.html
+Practice Contest log:
+   http://gauss.ececs.uc.edu/practice.log.8180
+   http://helios.ececs.uc.edu/practice.log.8180

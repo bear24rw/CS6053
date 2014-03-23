@@ -1,4 +1,5 @@
 import socket
+import argparse
 from printer import Printer
 from config import Config
 from diffie_hellman import DHE
@@ -8,10 +9,12 @@ printer = Printer("client")
 dhe = DHE()
 authenticated = False
 karn = None
+transfer = None
 
 def generate_response(line):
     global karn
     global authenticated
+    global transfer
 
     line = line.strip()
     directive, args = [x.strip() for x in line.split(':', 1)]
@@ -32,7 +35,7 @@ def generate_response(line):
             else:
                 return "ALIVE %s" % Config.cookie
         elif args == "HOST_PORT":
-            return "HOST_PORT %s %s" % (Config.host_ip, Config.host_port)
+            return "HOST_PORT %s %s" % (Config.server_ip, Config.server_port)
         else:
             printer.error("Unknown require: " + line)
     elif directive == "RESULT":
@@ -49,16 +52,27 @@ def generate_response(line):
         elif args[0] == "ALIVE" and args[1] == "Identity has been verified.":
             printer.info("Alive verified")
             authenticated = True
+        elif args[0] == "TRANSFER_REQUEST":
+            printer.info("Transfer was %s" % args[1])
         else:
             printer.error("Unknown result: %s (args: %r)" % (line, args))
     elif directive == "WAITING":
-        if authenticated:
+        if not authenticated:
+            printer.info("Waiting but not authenticated!")
+            return None
+        if transfer:
+            rt = "TRANSFER_REQUEST %s %s FROM %s\n" % transfer
+            transfer = None
+            return rt
+        if manual_mode:
             return raw_input('Command: ')
     elif directive == "COMMENT":
         pass
     elif directive == "COMMAND_ERROR":
         if "unable to connect to host" in args:
             return None
+        elif "TRANSFER_REQUEST REJECTED-Lack of points" in args:
+            printer.info("Transfer was reject - lack of points")
         else:
             printer.error(line)
     else:
@@ -67,6 +81,17 @@ def generate_response(line):
     return None
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--ident', default=Config.ident)
+    parser.add_argument('--transfer', nargs=3, metavar=('TO', 'AMOUNT', 'FROM'))
+    parser.add_argument('--manual', action='store_true')
+    args = parser.parse_args()
+
+    manual_mode = args.manual
+    transfer = tuple(args.transfer)
+    print transfer
+
 
     sock = socket.create_connection((Config.monitor_ip, Config.monitor_port))
 

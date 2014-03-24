@@ -19,6 +19,7 @@ class Config:
             "CORNHOLIO":    Account("CORNHOLIO", "-S_:9J7R9X*/&7UDL'SX-'2?R=FOW2!T'I8.Q7F?PA", "RQ4ZRZ67IXIZN5MIW89", 20120),
             "mtest16":      Account("mtest16", "12345", "C5K8GNM22KQ5XCFKVHF", 11121),
             "mtest17":      Account("mtest17", "12345", "J98Q82H1C458X6YAKAI", 11122),
+            "mtest18":      Account("mtest18", "12345", "MGYKSTOKL4T106N0175", 11123),
     }
 
     ident = ""

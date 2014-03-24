@@ -76,14 +76,13 @@ def generate_response(line):
     elif directive == "COMMENT":
         pass
     elif directive == "COMMAND_ERROR":
-        if "unable to connect to host" in args:
-            return None
-        elif "TRANSFER_REQUEST REJECTED-Lack of points" in args:
-            printer.info("Transfer was reject - lack of points")
-        else:
-            printer.error(line)
+        exit = True
+        printer.error(line)
+        return ""
     else:
+        exit = True
         printer.error("Unknown directive: " + line)
+        return ""
 
     return None
 

@@ -5,6 +5,7 @@ import SocketServer
 import platform
 import subprocess
 from config import Config
+from config import checksums
 from printer import Printer
 from diffie_hellman import DHE
 from karn import Karn
@@ -19,6 +20,8 @@ class tcp_handler(SocketServer.StreamRequestHandler):
         self.verifier = Verifier()
 
         self.printer = Printer("server")
+
+        self.exit = False
 
         SocketServer.StreamRequestHandler.setup(self)
 
@@ -74,6 +77,10 @@ class tcp_handler(SocketServer.StreamRequestHandler):
                 self.printer.error("Unknown result")
         elif directive == "PARTICIPANT_PASSWORD_CHECKSUM":
             self.printer.info("Got checksum: %s" % args)
+            if args not in checksums:
+                self.printer.error("INVALID CHECKSUM")
+                self.exit = True
+                return ""
         elif directive == "WAITING":
             pass
         elif directive == "COMMENT":
@@ -107,6 +114,10 @@ class tcp_handler(SocketServer.StreamRequestHandler):
             # add the newline and send the response
             response += '\n'
             self.wfile.write(response)
+
+            if self.exit:
+                self.printer.error("Exiting!")
+                break
 
 if __name__ == "__main__":
 

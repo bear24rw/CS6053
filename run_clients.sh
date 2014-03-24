@@ -1,3 +1,7 @@
+python client.py --ident
+python client.py --ident
+python client.py --ident
+
 while true
 do
     python client.py --ident mtest16 --transfer mtest16 100 mtest17 && \

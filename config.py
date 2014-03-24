@@ -1,11 +1,16 @@
+import hashlib
 import socket
+
+checksums = []
 
 class Account:
     def __init__(self, ident, password, cookie, port):
+        global checksums
         self.ident = ident
         self.password = password
         self.cookie = cookie
         self.port = port
+        checksums.append(hashlib.sha1(password).hexdigest())
 
 class Config:
     monitor_dns = "helios.ececs.uc.edu"

@@ -16,6 +16,7 @@ authenticated = False
 karn = None
 transfer = None
 exit = False
+only_do_alive = False
 
 def generate_response(line):
     global karn
@@ -25,8 +26,6 @@ def generate_response(line):
 
     line = line.strip()
     directive, args = [x.strip() for x in line.split(':', 1)]
-
-    printer.directive(line)
 
     if directive == "REQUIRE":
         if args == "IDENT":             return "IDENT %s %s" % (Config.ident, dhe.public_key)
@@ -55,6 +54,9 @@ def generate_response(line):
         elif args[0] == "ALIVE" and args[1] == "Identity has been verified.":
             printer.info("Alive verified")
             authenticated = True
+            if only_do_alive:
+                exit = True
+                return ""
         elif args[0] == "TRANSFER_REQUEST":
             printer.info("Transfer was %s" % args[1])
         elif args[0] == "ROUNDS":
@@ -92,10 +94,12 @@ if __name__ == "__main__":
     parser.add_argument('--ident', default="mtest16")
     parser.add_argument('--transfer', nargs=3, metavar=('TO', 'AMOUNT', 'FROM'))
     parser.add_argument('--manual', action='store_true')
+    parser.add_argument('--alive', action='store_true')
     args = parser.parse_args()
 
     manual_mode = args.manual
     transfer = args.transfer
+    only_do_alive = args.alive
 
     if args.ident not in Config.accounts:
         print "Invalid ident"
@@ -114,6 +118,9 @@ if __name__ == "__main__":
         if line.startswith('1a'):
             line = karn.decrypt(line)
             if line is None: continue
+            printer.directive(line, encrypted=True)
+        else:
+            printer.directive(line)
 
         # generate the response for this line
         response = generate_response(line)
@@ -121,7 +128,7 @@ if __name__ == "__main__":
         # if there is no response go get another line
         if response is None: continue
 
-        printer.command(response + '\n')
+        printer.command(response + '\n', encrypted=karn)
 
         # if we have a valid karn we can encrypt the response
         if karn:

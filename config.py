@@ -13,7 +13,7 @@ class Account:
         checksums.append(hashlib.sha1(password).hexdigest())
 
 class Config:
-    monitor_dns = "helios.ececs.uc.edu"
+    monitor_dns = "gauss.ececs.uc.edu"
     monitor_ip = socket.gethostbyname(monitor_dns)
     monitor_port = 8180
     server_ip = socket.gethostbyname(socket.getfqdn())
@@ -26,6 +26,12 @@ class Config:
             "mtest17":      Account("mtest17", "12345", "J98Q82H1C458X6YAKAI", 11122),
             "mtest18":      Account("mtest18", "12345", "MGYKSTOKL4T106N0175", 11123),
     }
+    """
+    ALTIUS BA5WKLFGG6XA1GFCI0
+    IDENT R6LA4UC2RNBZRJH7HJK
+    PASSWORD HZEXPZ9035G0PO0YCO7
+    ALIVE Q3Z2RZANB1CEJDFBS3
+    """
 
     ident = ""
     password = ""

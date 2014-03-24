@@ -34,8 +34,6 @@ class tcp_handler(SocketServer.StreamRequestHandler):
         line = line.strip()
         directive, args = [x.strip() for x in line.split(':', 1)]
 
-        self.printer.directive(line)
-
         if directive == "REQUIRE":
             if args == "IDENT":
                 return "IDENT %s %s" % (Config.ident, self.dhe.public_key)
@@ -98,6 +96,9 @@ class tcp_handler(SocketServer.StreamRequestHandler):
             if line.startswith('1a'):
                 line = self.karn.decrypt(line)
                 if line is None: continue
+                self.printer.directive(line, encrypted=True)
+            else:
+                self.printer.directive(line)
 
             # generate the response for this line
             response = self.generate_response(line)
@@ -105,7 +106,7 @@ class tcp_handler(SocketServer.StreamRequestHandler):
             # if there is no response go get another line
             if response is None: continue
 
-            self.printer.command(response + '\n')
+            self.printer.command(response + '\n', encrypted=self.karn)
 
             # if we have a valid karn we can encrypt the response
             if self.karn:

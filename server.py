@@ -10,6 +10,7 @@ from printer import Printer
 from diffie_hellman import DHE
 from karn import Karn
 from fiat import Verifier
+import parse_log
 
 class tcp_handler(SocketServer.StreamRequestHandler):
 
@@ -124,6 +125,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--ident', default="mtest16")
+    parser.add_argument('--logfile', default="/home/httpd/html/final.log.8180")
     args = parser.parse_args()
 
     if args.ident not in Config.accounts:
@@ -131,10 +133,12 @@ if __name__ == "__main__":
         sys.exit(1)
 
     Config.ident       = Config.accounts[args.ident].ident
-    Config.password    = Config.accounts[args.ident].password
-    Config.cookie      = Config.accounts[args.ident].cookie
     Config.server_port = Config.accounts[args.ident].port
 
+    parse_log.parse(args.logfile)
+    Config.cookie = parse_log.cookies[args.ident.lower()]
+    Config.password = parse_log.passes[args.ident.lower()]
+    print "Using cookie: '%s'" % Config.cookie
 
     print "Starting server on %s:%s" % (Config.server_ip, Config.server_port)
     server = SocketServer.ThreadingTCPServer((Config.server_ip, Config.server_port), tcp_handler)

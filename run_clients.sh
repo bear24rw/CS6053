@@ -1,4 +1,4 @@
-POINTS=200
+POINTS=500
 DELAY=60    # (60seconds/min * 60min/hour)/(150commands/hour / 7commands/transfer)/3 transfers
 
 #python client.py --ident mtest16

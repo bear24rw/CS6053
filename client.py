@@ -7,6 +7,7 @@ from diffie_hellman import DHE
 from karn import Karn
 from fiat import Prover
 from base32 import base32
+import parse_log
 
 config = Config()
 printer = Printer("client")
@@ -95,6 +96,7 @@ if __name__ == "__main__":
     parser.add_argument('--transfer', nargs=3, metavar=('TO', 'AMOUNT', 'FROM'))
     parser.add_argument('--manual', action='store_true')
     parser.add_argument('--alive', action='store_true')
+    parser.add_argument('--logfile', default="/home/httpd/html/final.log.8180")
     args = parser.parse_args()
 
     manual_mode = args.manual
@@ -105,10 +107,14 @@ if __name__ == "__main__":
         print "Invalid ident"
         sys.exit(1)
 
-    Config.ident       = Config.accounts[args.ident].ident
-    Config.password    = Config.accounts[args.ident].password
-    Config.cookie      = Config.accounts[args.ident].cookie
+    Config.ident = args.ident
     Config.server_port = Config.accounts[args.ident].port
+
+    parse_log.parse(args.logfile)
+    Config.cookie = parse_log.cookies[args.ident.lower()]
+    Config.password = parse_log.passes[args.ident.lower()]
+
+    print "Using cookie: '%s'" % Config.cookie
 
     sock = socket.create_connection((Config.monitor_ip, Config.monitor_port))
 

@@ -49,12 +49,12 @@ def generate_response(line):
             printer.info("Got cookie: " + Config.cookie)
         elif args[0] == "HOST_PORT":
             printer.info("Login successful! (%s)" % args[1])
-        elif args[0] == "ALIVE" and args[1] == "Identity has been verified.":
-            printer.info("Alive verified")
-            authenticated = True
             if transfer is None and not manual_mode:
                 exit = True
                 return ""
+        elif args[0] == "ALIVE" and args[1] == "Identity has been verified.":
+            printer.info("Alive verified")
+            authenticated = True
         elif args[0] == "TRANSFER_REQUEST":
             printer.info("Transfer was %s" % args[1])
         elif args[0] == "ROUNDS":

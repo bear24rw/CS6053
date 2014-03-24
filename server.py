@@ -117,9 +117,10 @@ class tcp_handler(SocketServer.StreamRequestHandler):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ident', default=Config.ident)
+    parser.add_argument('--ident', default=None)
     args = parser.parse_args()
 
+    print args.ident
     if args.ident:
         if args.ident not in Config.accounts:
             print "Invalid ident"

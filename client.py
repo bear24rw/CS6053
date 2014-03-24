@@ -59,7 +59,7 @@ def generate_response(line):
             printer.error("Unknown result: %s (args: %r)" % (line, args))
     elif directive == "WAITING":
         if not authenticated:
-            printer.info("Waiting but not authenticated!")
+            #printer.info("Waiting but not authenticated!")
             return None
         if transfer:
             rt = "TRANSFER_REQUEST %s %s FROM %s\n" % tuple(transfer)
@@ -84,7 +84,7 @@ def generate_response(line):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('--ident', default=Config.ident)
+    parser.add_argument('--ident', default=None)
     parser.add_argument('--transfer', nargs=3, metavar=('TO', 'AMOUNT', 'FROM'))
     parser.add_argument('--manual', action='store_true')
     args = parser.parse_args()
@@ -118,13 +118,14 @@ if __name__ == "__main__":
         # if there is no response go get another line
         if response is None: continue
 
+        printer.command(response + '\n')
+
         # if we have a valid karn we can encrypt the response
         if karn:
             response = karn.encrypt(response)
 
         # add the newline and send the response
         response += '\n'
-        printer.command(response)
         sock.send(response)
 
     sock.close()

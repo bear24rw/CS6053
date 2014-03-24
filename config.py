@@ -8,8 +8,7 @@ class Account:
         self.port = port
 
 class Config:
-    #monitor_dns = "helios.ececs.uc.edu"
-    monitor_dns = "localhost"
+    monitor_dns = "helios.ececs.uc.edu"
     monitor_ip = socket.gethostbyname(monitor_dns)
     monitor_port = 8180
     server_ip = socket.gethostbyname(socket.getfqdn())

@@ -1,4 +1,4 @@
-from Crypto.Random.random import getrandbits
+from random import getrandbits
 from base32 import base32
 
 class DHE:

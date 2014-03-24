@@ -15,11 +15,13 @@ prover = Prover()
 authenticated = False
 karn = None
 transfer = None
+exit = False
 
 def generate_response(line):
     global karn
     global authenticated
     global transfer
+    global exit
 
     line = line.strip()
     directive, args = [x.strip() for x in line.split(':', 1)]
@@ -35,8 +37,7 @@ def generate_response(line):
         elif args == "AUTHORIZE_SET":   return "AUTHORIZE_SET %s" % prover.authorize_set()
         elif args == "SUBSET_J":        return "SUBSET_J %s" % prover.subset_j()
         elif args == "SUBSET_K":        return "SUBSET_K %s" % prover.subset_k()
-        else:
-            printer.error("Unknown require: " + line)
+        else:                           printer.error("Unknown require: " + line)
     elif directive == "RESULT":
         args = args.split(' ', 1)
         if args[0] == "IDENT":
@@ -51,23 +52,26 @@ def generate_response(line):
         elif args[0] == "ALIVE" and args[1] == "Identity has been verified.":
             printer.info("Alive verified")
             authenticated = True
+            if transfer is None and not manual_mode:
+                exit = True
+                return ""
         elif args[0] == "TRANSFER_REQUEST":
             printer.info("Transfer was %s" % args[1])
         elif args[0] == "ROUNDS":
             prover.rounds = int(args[1])
         elif args[0] == "SUBSET_A":
             prover.subset_a = [int(x) for x in args[1].split()]
+        elif args[0] == "TRANSFER_RESPONSE" and not manual_mode:
+            exit = True
+            return ""
         else:
             printer.error("Unknown result: %s (args: %r)" % (line, args))
     elif directive == "WAITING":
-        if not authenticated:
-            #printer.info("Waiting but not authenticated!")
-            return None
-        if transfer:
+        if transfer and authenticated:
             rt = "TRANSFER_REQUEST %s %s FROM %s\n" % tuple(transfer)
             transfer = None
             return rt
-        if manual_mode:
+        if manual_mode and authenticated:
             return raw_input('Command: ')
     elif directive == "COMMENT":
         pass
@@ -103,7 +107,6 @@ if __name__ == "__main__":
     Config.cookie      = Config.accounts[args.ident].cookie
     Config.server_port = Config.accounts[args.ident].port
 
-
     sock = socket.create_connection((Config.monitor_ip, Config.monitor_port))
 
     for line in sock.makefile():
@@ -128,5 +131,7 @@ if __name__ == "__main__":
         # add the newline and send the response
         response += '\n'
         sock.send(response)
+
+        if exit: break
 
     sock.close()

@@ -7,6 +7,7 @@ from diffie_hellman import DHE
 from karn import Karn
 from fiat import Prover
 from base32 import base32
+import parse_log
 
 config = Config()
 printer = Printer("client")
@@ -15,16 +16,17 @@ prover = Prover()
 authenticated = False
 karn = None
 transfer = None
+exit = False
+only_do_alive = False
 
 def generate_response(line):
     global karn
     global authenticated
     global transfer
+    global exit
 
     line = line.strip()
     directive, args = [x.strip() for x in line.split(':', 1)]
-
-    printer.directive(line)
 
     if directive == "REQUIRE":
         if args == "IDENT":             return "IDENT %s %s" % (Config.ident, dhe.public_key)
@@ -35,8 +37,7 @@ def generate_response(line):
         elif args == "AUTHORIZE_SET":   return "AUTHORIZE_SET %s" % prover.authorize_set()
         elif args == "SUBSET_J":        return "SUBSET_J %s" % prover.subset_j()
         elif args == "SUBSET_K":        return "SUBSET_K %s" % prover.subset_k()
-        else:
-            printer.error("Unknown require: " + line)
+        else:                           printer.error("Unknown require: " + line)
     elif directive == "RESULT":
         args = args.split(' ', 1)
         if args[0] == "IDENT":
@@ -48,38 +49,43 @@ def generate_response(line):
             printer.info("Got cookie: " + Config.cookie)
         elif args[0] == "HOST_PORT":
             printer.info("Login successful! (%s)" % args[1])
+            if transfer is None and not manual_mode:
+                exit = True
+                return ""
         elif args[0] == "ALIVE" and args[1] == "Identity has been verified.":
             printer.info("Alive verified")
             authenticated = True
+            if only_do_alive:
+                exit = True
+                return ""
         elif args[0] == "TRANSFER_REQUEST":
             printer.info("Transfer was %s" % args[1])
         elif args[0] == "ROUNDS":
             prover.rounds = int(args[1])
         elif args[0] == "SUBSET_A":
             prover.subset_a = [int(x) for x in args[1].split()]
+        elif args[0] == "TRANSFER_RESPONSE" and not manual_mode:
+            exit = True
+            return ""
         else:
             printer.error("Unknown result: %s (args: %r)" % (line, args))
     elif directive == "WAITING":
-        if not authenticated:
-            #printer.info("Waiting but not authenticated!")
-            return None
-        if transfer:
+        if transfer and authenticated:
             rt = "TRANSFER_REQUEST %s %s FROM %s\n" % tuple(transfer)
             transfer = None
             return rt
-        if manual_mode:
+        if manual_mode and authenticated:
             return raw_input('Command: ')
     elif directive == "COMMENT":
         pass
     elif directive == "COMMAND_ERROR":
-        if "unable to connect to host" in args:
-            return None
-        elif "TRANSFER_REQUEST REJECTED-Lack of points" in args:
-            printer.info("Transfer was reject - lack of points")
-        else:
-            printer.error(line)
+        exit = True
+        printer.error(line)
+        return ""
     else:
+        exit = True
         printer.error("Unknown directive: " + line)
+        return ""
 
     return None
 
@@ -89,20 +95,26 @@ if __name__ == "__main__":
     parser.add_argument('--ident', default="mtest16")
     parser.add_argument('--transfer', nargs=3, metavar=('TO', 'AMOUNT', 'FROM'))
     parser.add_argument('--manual', action='store_true')
+    parser.add_argument('--alive', action='store_true')
+    parser.add_argument('--logfile', default="/home/httpd/html/final.log.8180")
     args = parser.parse_args()
 
     manual_mode = args.manual
     transfer = args.transfer
+    only_do_alive = args.alive
 
     if args.ident not in Config.accounts:
         print "Invalid ident"
         sys.exit(1)
 
-    Config.ident       = Config.accounts[args.ident].ident
-    Config.password    = Config.accounts[args.ident].password
-    Config.cookie      = Config.accounts[args.ident].cookie
+    Config.ident = args.ident
     Config.server_port = Config.accounts[args.ident].port
 
+    parse_log.parse(args.logfile)
+    Config.cookie = parse_log.cookies[args.ident.lower()]
+    Config.password = parse_log.passes[args.ident.lower()]
+
+    print "Using cookie: '%s'" % Config.cookie
 
     sock = socket.create_connection((Config.monitor_ip, Config.monitor_port))
 
@@ -112,6 +124,9 @@ if __name__ == "__main__":
         if line.startswith('1a'):
             line = karn.decrypt(line)
             if line is None: continue
+            printer.directive(line, encrypted=True)
+        else:
+            printer.directive(line)
 
         # generate the response for this line
         response = generate_response(line)
@@ -119,7 +134,7 @@ if __name__ == "__main__":
         # if there is no response go get another line
         if response is None: continue
 
-        printer.command(response + '\n')
+        printer.command(response + '\n', encrypted=karn)
 
         # if we have a valid karn we can encrypt the response
         if karn:
@@ -128,5 +143,7 @@ if __name__ == "__main__":
         # add the newline and send the response
         response += '\n'
         sock.send(response)
+
+        if exit: break
 
     sock.close()

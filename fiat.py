@@ -8,10 +8,8 @@ class Prover:
     http://friedo.szm.com/krypto/AC/ch21/21-01.html
     '''
 
-    #p = 18446744073709551253
-    #q = 18446744073709551557
-    p = 70184992425131707181
-    q = 55658916385526039923
+    p = 18446744073709551253
+    q = 18446744073709551557
     n = p * q
 
     def __init__(self):
@@ -54,10 +52,6 @@ class Verifier:
         self.subset_a = sorted(random.sample(range(self.rounds), self.rounds // 2))
 
     def good(self):
-
-        if not self.authorize_set: print "auth set empty!!!!!!!!!"
-        if not self.subset_j: print "subset j empty!!!!!!!"
-        if not self.subset_k: print "subset k empty!!!!!!!"
 
         # check that the public key is our own
         if self.n != Prover.n:

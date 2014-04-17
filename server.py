@@ -5,10 +5,12 @@ import SocketServer
 import platform
 import subprocess
 from config import Config
+from config import checksums
 from printer import Printer
 from diffie_hellman import DHE
 from karn import Karn
 from fiat import Verifier
+import parse_log
 
 class tcp_handler(SocketServer.StreamRequestHandler):
 
@@ -20,6 +22,8 @@ class tcp_handler(SocketServer.StreamRequestHandler):
 
         self.printer = Printer("server")
 
+        self.exit = False
+
         SocketServer.StreamRequestHandler.setup(self)
 
     def finish(self):
@@ -30,8 +34,6 @@ class tcp_handler(SocketServer.StreamRequestHandler):
 
         line = line.strip()
         directive, args = [x.strip() for x in line.split(':', 1)]
-
-        self.printer.directive(line)
 
         if directive == "REQUIRE":
             if args == "IDENT":
@@ -74,6 +76,10 @@ class tcp_handler(SocketServer.StreamRequestHandler):
                 self.printer.error("Unknown result")
         elif directive == "PARTICIPANT_PASSWORD_CHECKSUM":
             self.printer.info("Got checksum: %s" % args)
+            if args not in checksums:
+                self.printer.error("INVALID CHECKSUM")
+                self.exit = True
+                return ""
         elif directive == "WAITING":
             pass
         elif directive == "COMMENT":
@@ -91,6 +97,9 @@ class tcp_handler(SocketServer.StreamRequestHandler):
             if line.startswith('1a'):
                 line = self.karn.decrypt(line)
                 if line is None: continue
+                self.printer.directive(line, encrypted=True)
+            else:
+                self.printer.directive(line)
 
             # generate the response for this line
             response = self.generate_response(line)
@@ -98,7 +107,7 @@ class tcp_handler(SocketServer.StreamRequestHandler):
             # if there is no response go get another line
             if response is None: continue
 
-            self.printer.command(response + '\n')
+            self.printer.command(response + '\n', encrypted=self.karn)
 
             # if we have a valid karn we can encrypt the response
             if self.karn:
@@ -108,10 +117,15 @@ class tcp_handler(SocketServer.StreamRequestHandler):
             response += '\n'
             self.wfile.write(response)
 
+            if self.exit:
+                self.printer.error("Exiting!")
+                break
+
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--ident', default="mtest16")
+    parser.add_argument('--logfile', default="/home/httpd/html/final.log.8180")
     args = parser.parse_args()
 
     if args.ident not in Config.accounts:
@@ -119,10 +133,12 @@ if __name__ == "__main__":
         sys.exit(1)
 
     Config.ident       = Config.accounts[args.ident].ident
-    Config.password    = Config.accounts[args.ident].password
-    Config.cookie      = Config.accounts[args.ident].cookie
     Config.server_port = Config.accounts[args.ident].port
 
+    parse_log.parse(args.logfile)
+    Config.cookie = parse_log.cookies[args.ident.lower()]
+    Config.password = parse_log.passes[args.ident.lower()]
+    print "Using cookie: '%s'" % Config.cookie
 
     print "Starting server on %s:%s" % (Config.server_ip, Config.server_port)
     server = SocketServer.ThreadingTCPServer((Config.server_ip, Config.server_port), tcp_handler)

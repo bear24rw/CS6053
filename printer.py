@@ -1,3 +1,5 @@
+from config import Config
+
 class Printer:
 
     BOLD    = '\033[1m'
@@ -14,25 +16,29 @@ class Printer:
     def __init__(self, who=""):
         self.who = who
 
-    def directive(self, string):
-        label = "monitor -> %s" % self.who
+    def directive(self, string, encrypted=False):
+        if encrypted:
+            label = "<E<"
+        else:
+            label = "<<<"
         self._print(string, label, self.GREEN)
 
-    def command(self, string):
-        label = "%s -> monitor" % self.who
+    def command(self, string, encrypted=False):
+        if encrypted:
+            label = ">E>"
+        else:
+            label = ">>>"
         self._print(string, label, self.BLUE)
 
     def error(self, string):
         string = string.strip()
-        label = self.who.center(17)
-        self._print(string, label, self.RED)
+        self._print(string, "---", self.RED)
 
     def info(self, string):
         string = string.strip()
-        label = self.who.center(17)
-        self._print(string, label, self.YELLOW)
+        self._print(string, "---", self.YELLOW)
 
     def _print(self, string, label, color):
         string = string.strip()
         if string == "": return
-        print "[" + label + "] " + color + string + self.DEFAULT
+        print "[" + Config.ident + "] " + label + "  " + color + string + self.DEFAULT

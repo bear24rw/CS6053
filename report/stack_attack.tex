@@ -212,12 +212,60 @@ In order to decrypt the message we needed to follow the steps shown below:
           right half.
 \end{itemize}
 
+%http://www.cs.princeton.edu/courses/archive/fall07/cos433/lec15.pdf
 \subsection{Zero-Knowledge Proof}
+The main purpose of zero-knowledge proof is to...
+
+A zero-knowledge proof is a proof such that it will prove a given statement
+without giving out the ``answer.'' It only gives out the
+``postulates/theorems'' to convince the server that the statement is true
+without having the server learn anything about the given statement.
+
+An example of a zero-knowledge proof is the Fiat-Shamir.
+
+For example, Alice (prover) will not need to have a shared key with Bob
+(verifier); all Alice needs to do is convince Bob that this is truly her
+without Bob having the key. Alice will prove the Knowledge of the secret
+to Bob in \texttt{t} executions. The probability is found to be
+\texttt{2$^{-t}$}. Therefore, the more iterations Alice tries to prove
+to Bob, the harder it is for an attacker to ``impersonate'' Alice.
+
+The protocol can be described below:
+\begin{itemize}
+    \item Initially, \texttt{A} will select two primes \texttt{p,q}, and multiply them together to generate the public key (n).
+    \item \texttt{A} will then select \texttt{s} coprime to \texttt{n}, where $1 \leq s \leq$,
+    \item \texttt{A} will then compute v:
+        \begin{align*}
+            v &\equiv s^{2} \thickspace mod \thickspace n
+        \end{align*}
+    \item \texttt{A} chooses random commitment \texttt{r}, $1 \leq \texttt{r} \leq \texttt{n-1}$
+    \item \texttt{A} sends \texttt{B}:
+        \begin{align*}
+            x &\equiv r^{2} \thickspace mod \thickspace n
+        \end{align*}
+    \item \texttt{B} then sends \texttt{A} a random \texttt{e}, \{0,1\}
+    \item \texttt{A} sends \texttt{B}:
+        \begin{align*}
+            y &\equiv r*s^{e} \thickspace mod \thickspace n
+        \end{align*}
+\end{itemize}
+Once \texttt{A} has tried to prove to \texttt{B} that this is the correct user, \texttt{B} must verify.
+The verification process is shown below:
+
+\begin{itemize}
+    \item \texttt{B} rejects if y = 0,
+    \item \texttt{B} accepts if:
+        \begin{align*}
+            y^{2} &\equiv x*v^{e} \thickspace mod \thickspace n
+        \end{align*}
+    \item rejects otherwise (above)
+\end{itemize}
 
 % creating session key
-\subsection{Diffie-Hellman}
+%\subsection{Diffie-Hellman}
 
 \subsection{Maintaining Security}
+In order to maintain security, we implemented the algorithms described above.
 
 %\begin{figure}[H]
 %    \centering

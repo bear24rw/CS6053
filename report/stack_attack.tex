@@ -114,12 +114,12 @@ The purpose of this lab was to create a program on the client end that connects
 to a server. On the server end is another program that is running called the
 \texttt{Monitor}. The \texttt{Monitor} listens for an open socket on an open
 port for incoming connections. As long as the \texttt{Monitor} is able to
-authenticate the client, the \texttt{Monitor} will reward points. The group with the
-highest points wins the contest. The challenging part of the contest is to
-remain a secure connection between the client and the server so the group is
-able to be rewarded with points. In order to maintain a secure connection we
-have implemented a few algorithms: Diffie-Hellman, Karn Symmetric Cyrptosystem,
-and the Fiat-Shamir Algorithm.
+authenticate the client, the \texttt{Monitor} will reward points. The group
+with the highest points wins the contest. The challenging part of the contest
+is to remain a secure connection between the client and the server so each
+group is rewarded with points. In order to maintain a secure connection we have
+implemented a few algorithms: Diffie-Hellman, Karn Symmetric Cyrptosystem, and
+the Fiat-Shamir Algorithm.
 
 \section{Implementation}
 
@@ -132,30 +132,29 @@ Diffie-Hellman key exchange works as shown below:
     \includegraphics[width=\linewidth]{./pics/diffie_hellman.png}
     \caption{Diffie-Hellman Key Exchange}
 \end{figure}
-In the image above, we can see that the \texttt{g,p} are just the generator and
+In the image above, we can see that \texttt{g,p} are just the generator and
 the modulo prime number respectively. \texttt{A} is calculated using the
-function (g$^{a}$ mod p) sent over to \texttt{Bob}. Note that g,p, and A are all
-seen by everyone. The trick here is that \texttt{Alice} and \texttt{Bob} both
-generate there own secret key locally (this key is never sent). The way we can
-authenticate can be shown in the example below:
+function, \texttt{K} (g$^{a}$ mod p); this is then sent over to \texttt{Bob}.
+Note that \texttt{g,p}, and \texttt{A} are all seen by everyone. The trick here
+is that \texttt{Alice} and \texttt{Bob} both generate there own secret key
+locally (this key is never sent across a network). The way we can authenticate
+can be shown in the example below:
 
 \begin{align*}
     A &= g^{a} \thickspace mod \thickspace p,  \\
     B &= g^{b} \thickspace mod \thickspace p,  \\
     A &= 3^{15} \thickspace mod \thickspace 17 \equiv 6 \\
     B &= 3^{13} \thickspace mod \thickspace 17 \equiv 12 \\
-    %t_{r} = R_{p}C ,
-    %t_{f} = R_{n}C \\
-    %R_{n} \propto {L_{n} \over W_{n}\mu_{0_{n}}},
-    %R_{p} \propto {L_{p} \over W_{p}\mu_{0_{p}}}
 \end{align*}
 where a = 15 (Alice's secret key), g = 3, p = 17 and \\
 where b = 13 (Bob's secret key),   g = 3, p = 17 \\
 
-Therefore, \texttt{Bob} receives this value from \texttt{Alice} along with p
-and g. Now \texttt{Bob} computes his result and sends \texttt{12} to Alice. Now
-the heart of the trick lies here: Alice will take Bob's message and use her
-private key to get the correct message from Bob:
+Therefore, \texttt{Bob} receives this value from \texttt{Alice} along with
+\texttt{p} and \texttt{g}. Now \texttt{Bob} computes his result and sends
+\texttt{12} to \texttt{Alice}. Now the heart of the trick lies here:
+\texttt{Alice} will take Bob's key and use her private key to get the correct
+message from \texttt{Bob} and \texttt{Bob} does the same with \texttt{Alice's}
+key:
 
 \begin{align*}
     A &= 12^{15} \thickspace mod \thickspace 17 \equiv 10 \\
@@ -194,8 +193,8 @@ encryption algorithm works as described below:
           with the key right half,
     \item XOR the digest with the plaintext left half.
 \end{itemize}
-Once this is complete we have both halves, therefore we can just output both the
-left and right half of the ciphertext.
+Once this is complete we have both halves, allowing us to output both the left
+and right half of the ciphertext.
 
 In order to decrypt the message we needed to follow the steps shown below:
 \begin{itemize}
@@ -212,23 +211,21 @@ In order to decrypt the message we needed to follow the steps shown below:
           right half.
 \end{itemize}
 
-%http://www.cs.princeton.edu/courses/archive/fall07/cos433/lec15.pdf
 \subsection{Zero-Knowledge Proof}
-The main purpose of zero-knowledge proof is to...
-
 A zero-knowledge proof is a proof such that it will prove a given statement
 without giving out the ``answer.'' It only gives out the
 ``postulates/theorems'' to convince the server that the statement is true
-without having the server learn anything about the given statement.
+without having the server learn anything about the given statement. One example
+of a zero-knowledge proof is the Fiat-Shamir heuristic algorithm. A simple example
+can be descibed below:
 
-An example of a zero-knowledge proof is the Fiat-Shamir.
-
-For example, Alice (prover) will not need to have a shared key with Bob
-(verifier); all Alice needs to do is convince Bob that this is truly her
-without Bob having the key. Alice will prove the Knowledge of the secret
-to Bob in \texttt{t} executions. The probability is found to be
-\texttt{2$^{-t}$}. Therefore, the more iterations Alice tries to prove
-to Bob, the harder it is for an attacker to ``impersonate'' Alice.
+\texttt{Alice} (prover) will not need to have a shared key with \texttt{Bob}
+(verifier); all Alice needs to do is convince \texttt{Bob} that this is truly
+her without \texttt{Bob} having the key. \texttt{Alice} will prove the
+knowledge of the secret to \texttt{Bob} in \texttt{t} executions. The
+probability is found to be \texttt{2$^{-t}$}. Therefore, the more iterations
+\texttt{Alice} tries to prove to \texttt{Bob}, the harder it is for an attacker
+to ``impersonate'' \texttt{Alice}.
 
 The protocol can be described below:
 \begin{itemize}
@@ -256,9 +253,9 @@ The verification process is shown below:
     \item \texttt{B} rejects if y = 0,
     \item \texttt{B} accepts if:
         \begin{align*}
-            y^{2} &\equiv x*v^{e} \thickspace mod \thickspace n
+            & y^{2} \equiv x*v^{e} \thickspace mod \thickspace n, \\
+            & rejects \thickspace otherwise
         \end{align*}
-    \item rejects otherwise (above)
 \end{itemize}
 
 % creating session key
@@ -266,12 +263,6 @@ The verification process is shown below:
 
 \subsection{Maintaining Security}
 In order to maintain security, we implemented the algorithms described above.
-
-%\begin{figure}[H]
-%    \centering
-%    \includegraphics[width=\linewidth]{./pics/mitm_attack.jpg}
-%    \caption{Man-In-The-Middle Attack}
-%\end{figure}
 
 \newpage
 \section{Appendix}
@@ -289,7 +280,7 @@ In order to maintain security, we implemented the algorithms described above.
 
 \newpage
 \begin{thebibliography}{9}
-    \bibitem{ssl} \url{http://www.digicert.com/sha-2-ssl-certificates.htm}
+    \bibitem{zero} \url{http://www.cs.princeton.edu/courses/archive/fall07/cos433/lec15.pdf}
 \end{thebibliography}
 
 \end{document}

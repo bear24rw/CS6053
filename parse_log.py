@@ -1,8 +1,12 @@
+"""
+Parses the monitor log and builds a dictionary mapping
+player names to their most recent cookie value.
+"""
+
 import sys
 
 passes = {}
 cookies = {}
-
 
 def parse(filename=None):
     global passes

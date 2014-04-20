@@ -1,3 +1,7 @@
+"""
+Fiat-Shamir Zero Knowledge Authentication
+"""
+
 import random
 from config import Config
 

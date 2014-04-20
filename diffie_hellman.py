@@ -1,3 +1,7 @@
+"""
+Diffie Hellman Key Exchange
+"""
+
 from random import getrandbits
 from base32 import base32
 

@@ -1,3 +1,7 @@
+"""
+Prints colored and properly formatted messages to stdout
+"""
+
 from config import Config
 
 class Printer:

@@ -109,27 +109,19 @@
 \parskip = 0.5\baselineskip
 \newpage
 
-\section{Introduction}
-The purpose of this lab was to create a program on the client end that connects
-to a server. On the server end is another program that is running called the
-\texttt{Monitor}. The \texttt{Monitor} listens for an open socket on an open
-port for incoming connections. As long as the \texttt{Monitor} is able to
-authenticate the client, the \texttt{Monitor} will reward points. The group
-with the highest points wins the contest. The challenging part of the contest
-is to remain a secure connection between the client and the server so each
-group is rewarded with points. In order to maintain a secure connection we have
-implemented a few algorithms: Diffie-Hellman, Karn Symmetric Cyrptosystem, and
-the Fiat-Shamir Algorithm.
+\section{Maintaining Security}
 
-\section{Implementation}
+In order to maintain a secure connection with the monitor we have implemented a
+few different algorithms: Diffie-Hellman, Karn Symmetric Cyrptosystem, and the
+Fiat-Shamir Algorithm.
 
-\subsection{Authentication of Monitor}
+\subsection{Diffie-Hellman}
 In order to authenticate with the \texttt{Monitor} we first needed to implement
 a shared secret key. We did this by implementing the Diffie-Hellman protocol. The
 Diffie-Hellman key exchange works as shown below:
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{./pics/diffie_hellman.png}
+    \includegraphics[width=0.4\linewidth]{./diffie_hellman.png}
     \caption{Diffie-Hellman Key Exchange}
 \end{figure}
 In the image above, we can see that \texttt{g,p} are just the generator and
@@ -183,7 +175,7 @@ the bits of the shared secret key into two halves: a left and a right half. The
 encryption algorithm works as described below:
 \begin{itemize}
     \item Add ``guard'' byte of value 42,
-    \item During each clock of plaintext, divide block of plaintext into
+    \item During each block of plaintext, divide block of plaintext into
           left/right half,
     \item Find the message digest of the concatenation of the left plaintext
           half and the left key half,
@@ -211,8 +203,16 @@ In order to decrypt the message we needed to follow the steps shown below:
           right half.
 \end{itemize}
 
+One interesting problem we came across is that the monitor is using a Java
+BigInteger type to store its key and the BigInteger is signed so Java adds a
+pad byte to maintain its signedness. This results in a key that is one byte
+longer than we expect. Since we are using Python we have to manually add the
+extra pad byte. This should really be fixed in the monitor
+(\texttt{monitor/Cipher.java:87}) so that the pad byte is ignored.
+
+\newpage
 \subsection{Zero-Knowledge Proof}
-A zero-knowledge proof is a proof such that it will prove a given statement
+A zero-knowledge proof is a proof that will prove a given statement
 without giving out the ``answer.'' It only gives out the
 ``postulates/theorems'' to convince the server that the statement is true
 without having the server learn anything about the given statement. One example
@@ -258,11 +258,40 @@ The verification process is shown below:
         \end{align*}
 \end{itemize}
 
-% creating session key
-%\subsection{Diffie-Hellman}
+We initially had a hard time implementing this and ended up closely following
+AJ Alts and Ryan Childs implementation \cite{aj} from a few years ago.
 
-\subsection{Maintaining Security}
-In order to maintain security, we implemented the algorithms described above.
+\newpage
+\section{Attacking Accounts}
+
+We entered this competition from a purely defensive standpoint, mostly due to
+the fact that we didn't have our code fully working until a few days before the
+competition. When the competition began we waited for a while to see what the
+activity of the other players would be. After seeing basically not activity for
+almost an hour we decided to just start our script that would transfer funds
+between our accounts. As other players connected we manually recorded their
+cookies (later wrote a script to harvest them) in anticipation of being able to
+use them later. It wasn't long before somehow our password was changed. At the
+time this was really baffling because we had never sent our password to the
+monitor and you need the old password to create a new one. As we later found
+out the team that got root on gauss had full control of the monitor. At this
+point we were unable to do much. We added the functionality to parse the logs
+for our latest cookie and password in an attempt to recover our accounts. This
+was fruitless, however, being that every time the other team logged in with our
+account they immediately changed the password again causing the cookie to
+change.  We left our script running anyway in the hopes that maybe their
+strategy would change and we would be able to grab the new password to our
+account. Needless to say we were never able to recover our account and the
+points we had accrued early in the competition were taken back by the monitor
+over time as our server was not able to respond to the alive requests.
+
+\vfill
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{./log.png}
+    \caption{Screenshot of script transferring points between our three accounts}
+\end{figure}
+\vfill
 
 \newpage
 \section{Appendix}
@@ -275,12 +304,11 @@ In order to maintain security, we implemented the algorithms described above.
     \lstinputlisting[caption=\textbf{Printer}]{../printer.py}
     \lstinputlisting[caption=\textbf{Base 32}]{../base32.py}
     \lstinputlisting[caption=\textbf{Configuration File}]{../config.py}
-    \lstinputlisting[caption=\textbf{Test 1}]{../test.py}
-    \lstinputlisting[caption=\textbf{Test 2}]{../test2.py}
 
 \newpage
 \begin{thebibliography}{9}
     \bibitem{zero} \url{http://www.cs.princeton.edu/courses/archive/fall07/cos433/lec15.pdf}
+    \bibitem{aj} \url{https://github.com/ajalt/PWNmlete-2011/blob/master/fiat_shamir.py}
 \end{thebibliography}
 
 \end{document}

@@ -1,3 +1,7 @@
+"""
+Karn Symmetric Key Cryptosystem
+"""
+
 from hashlib import sha1
 from itertools import izip_longest
 import struct
